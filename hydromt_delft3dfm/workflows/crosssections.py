@@ -325,6 +325,11 @@ def set_branch_crosssections(
         crosssections_up["frictionid"] = branches["frictionid"].values
         crosssections_up["frictiontype"] = branches["frictiontype"].values
         crosssections_up["frictionvalue"] = branches["frictionvalue"].values
+        crosssections_up["width"] = branches["width"].values
+        crosssections_up["height"] = branches["height"].values
+        crosssections_up["closed"] = branches["closed"].values
+        
+        
         # Downstream
         ids = [f"{i}_dn" for i in branches.index]
         crosssections_dn = gpd.GeoDataFrame(
@@ -343,6 +348,10 @@ def set_branch_crosssections(
         crosssections_dn["frictionid"] = branches["frictionid"].values
         crosssections_dn["frictiontype"] = branches["frictiontype"].values
         crosssections_dn["frictionvalue"] = branches["frictionvalue"].values
+        crosssections_dn["width"] = branches["width"].values
+        crosssections_dn["height"] = branches["height"].values 
+        crosssections_dn["closed"] = branches["closed"].values 
+        
         # Merge
         crosssections = pd.concat([crosssections_up, crosssections_dn])
 
@@ -371,6 +380,32 @@ def set_branch_crosssections(
                 )
                 crosssections_ = pd.concat(
                     [crosssections_, _set_circle_crs(circle_crs)]
+                )
+        
+            if shape == "rectangle":
+                rectangle_crs = crosssections.loc[crosssections["shape"] == shape, :]
+                rectangle_crs["definitionid"] = rectangle_crs.apply(
+                    lambda x: "rect_h{:,.3f}_w{:,.3f}_c{:s}_{:s}".format(
+                        x["height"],
+                        x["width"],
+                        x["closed"],
+                        "branch",
+                    ),axis=1)
+                check_gpd_attributes(
+                    rectangle_crs,
+                    required_columns=[
+                        "branch_id",
+                        "branch_offset",
+                        "frictionid",
+                        "frictiontype",
+                        "frictionvalue",
+                        "width",
+                        "height",
+                        "closed",
+                    ],
+                )
+                crosssections_ = pd.concat(
+                    [crosssections_, _set_rectangle_crs(rectangle_crs)]
                 )
 
     # setup thalweg for GUI
